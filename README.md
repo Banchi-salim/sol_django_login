@@ -19,8 +19,8 @@ Perfect for Naija devs shipping **device-swapping marketplaces**, **$HIPO airdro
 
 ```bash
 # 1. Clone
-git clone https://github.com/banchi-salim/django-solana-login-template.git
-cd django-solana-login-template
+git clone https://github.com/Banchi-salim/sol_django_login.git
+cd sol_django_login
 
 # 2. Install
 pip install django solana
