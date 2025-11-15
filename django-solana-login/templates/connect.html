@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Solana Login - Banchi_salim Web3 journey</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#8b5cf6",
+                        darkPurple: "#6d28d9",
+                        solana1: "#9945FF",
+                        solana2: "#19FB9B"
+                    },
+                    backgroundImage: {
+                        solanaGradient:
+                            "linear-gradient(135deg, #0e011a 0%, #1c013a 40%, #35008a 80%, #4800b8 100%)",
+                    },
+                    keyframes: {
+                        shine: {
+                            "0%": { transform: "translateX(-150%)" },
+                            "100%": { transform: "translateX(150%)" }
+                        },
+                        float: {
+                            "0%, 100%": { transform: "translateY(0)" },
+                            "50%": { transform: "translateY(-6px)" }
+                        },
+                        spinSlow: {
+                            "0%": { transform: "rotate(0deg)" },
+                            "100%": { transform: "rotate(360deg)" }
+                        },
+                        neonGlow: {
+                            "0%, 100%": { boxShadow: "0 0 20px #8b5cf680, 0 0 40px #8b5cf633" },
+                            "50%": { boxShadow: "0 0 40px #8b5cf6dd, 0 0 70px #8b5cf699" }
+                        }
+                    },
+                    animation: {
+                        shine: "shine 1.3s ease-in-out infinite",
+                        float: "float 3s ease-in-out infinite",
+                        spinSlow: "spinSlow 1.4s linear infinite",
+                        neonGlow: "neonGlow 2.4s ease-in-out infinite"
+                    }
+                },
+            },
+        };
+    </script>
+
+</head>
+
+<body class="min-h-screen bg-solanaGradient flex items-center justify-center p-5">
+
+<!-- GLASS CARD -->
+<div id="card"
+     class="max-w-md w-full bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-xl
+                   text-center transition-all duration-700">
+
+    <!-- Phantom Logo -->
+    <div class="mx-auto mb-5 animate-float">
+        <div class="relative w-20 h-20 mx-auto">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Phantom_Logo.png/1200px-Phantom_Logo.png"
+                 class="w-full opacity-90 drop-shadow-[0_0_18px_#8b5cf660]">
+
+            <!-- Shine -->
+            <span class="absolute top-0 left-0 w-full h-full bg-white/30 blur-md -skew-x-12 animate-shine pointer-events-none"></span>
+        </div>
+    </div>
+
+    <!-- Text -->
+    <h1 class="text-3xl font-extrabold text-white tracking-wide">
+        Connect Your Wallet
+    </h1>
+
+    <p class="text-violet-200 mt-2 text-sm">
+        Experience Next-Level Web3 Authentication
+    </p>
+
+    <!-- CONNECT BUTTON -->
+    <button id="connectBtn"
+            onclick="connect()"
+            class="relative overflow-hidden w-full mt-8 py-4 bg-primary text-white text-lg font-semibold rounded-xl
+                       shadow-lg transition transform active:scale-95 hover:bg-darkPurple">
+
+        <span class="relative z-10">Login with Phantom</span>
+
+        <!-- Hover light sweep -->
+        <span class="absolute inset-0 bg-white/20 translate-x-[-150%] skew-x-12
+                             transition-all duration-700 hover:translate-x-[150%]"></span>
+    </button>
+
+    <!-- LOADING -->
+    <div id="loading" class="hidden flex flex-col items-center mt-8 space-y-3">
+        <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spinSlow"></div>
+        <p class="text-primary font-semibold">Connecting...</p>
+    </div>
+
+    <!-- CONNECTED -->
+    <div id="connected" class="hidden flex flex-col items-center mt-8 space-y-3">
+        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center animate-neonGlow">
+            <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <p class="text-primary font-bold text-lg">Wallet Connected</p>
+    </div>
+
+    <form method="post" id="loginForm" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="public_key" id="public_key">
+        <input type="hidden" name="message" id="message">
+        <input type="hidden" name="signature" id="signature">
+    </form>
+
+
+</div>
+
+<!-- Solana Web3 -->
+<script src="https://unpkg.com/@solana/web3.js@5.0.0/lib/index.iife.min.js"></script>
+
+<script>
+    async function connect() {
+        const provider = window?.phantom?.solana || window?.solana;
+
+        if (!provider?.isPhantom) {
+            alert("Phantom wallet not found");
+            return;
+        }
+
+        try {
+            const resp = await provider.connect();
+            const publicKey = resp.publicKey.toString();
+
+            const message = "Login to Naija Web3: " + Date.now();
+            const encodedMessage = new TextEncoder().encode(message);
+
+            const signed = await provider.signMessage(encodedMessage, "utf8");
+
+            // Convert Uint8Array signature to Base64
+            function uint8ArrayToBase64(uint8Array) {
+                let binary = '';
+                const len = uint8Array.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(uint8Array[i]);
+                }
+                return window.btoa(binary);
+            }
+
+            document.getElementById("public_key").value = publicKey;
+            document.getElementById("message").value = message;
+            document.getElementById("signature").value = uint8ArrayToBase64(signed.signature);
+
+            document.getElementById("loginForm").submit();
+
+        } catch (err) {
+            alert("Wallet connection failed: " + err.message);
+        }
+    }
+
+</script>
+
+
+</body>
+</html>
